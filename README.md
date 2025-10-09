@@ -1,7 +1,5 @@
 # Sistema-de-Moeda-Estudantil-Lab-3-Projeto-De-Software
 
----
-
 ## 👥 Integrantes
 
 - Fernanda Soares Oliveira Cunha  
