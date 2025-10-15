@@ -67,12 +67,12 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="student-course">Curso *</Label>
-                <Input id="student-course" placeholder="Ex: Ciência da Computação" />
+                <Input id="student-course" placeholder="Ex: Engenharia de Software" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="student-email">Email *</Label>
-                <Input id="student-email" type="email" placeholder="joao.silva@email.com" />
+                <Input id="student-email" type="email" placeholder="seu@email.com" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
