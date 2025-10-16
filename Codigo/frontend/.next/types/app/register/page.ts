@@ -1,4 +1,4 @@
-// File: C:\Users\PC\Documents\Projetos\Spring Boot\Sistema-de-Moeda-Estudantil-Lab-3-Projeto-De-Software\Codigo\frontend\app\register\page.tsx
+// File: C:\Users\reisl\OneDrive\Documentos\GitHub\Sistema-de-Moeda-Estudantil-Lab-3-Projeto-De-Software\Codigo\frontend\app\register\page.tsx
 import * as entry from '../../../../app/register/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
