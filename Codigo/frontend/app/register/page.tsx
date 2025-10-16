@@ -1,5 +1,6 @@
 "use client";
 
+import type { Metadata } from 'next'
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Coins, ArrowLeft } from "lucide-react";
 import { useState } from "react";
+
+export const metadata: Metadata = {
+  title: 'MeritCoin - Criar Conta',
+}
 
 export default function RegisterPage() {
   const [studentData, setStudentData] = useState({
