@@ -1,5 +1,8 @@
 package com.moeda.estudantil.Usuario;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.moeda.estudantil.TipoUsuario.TipoUsuario;
 
 import jakarta.persistence.Entity;
@@ -30,6 +33,7 @@ public class Usuario {
     private String email;
     private String senha;
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private TipoUsuario tipoUsuario;
 
     public Usuario(UsuarioRegisterDTO data) {
