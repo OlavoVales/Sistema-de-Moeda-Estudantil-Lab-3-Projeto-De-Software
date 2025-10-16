@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Coins, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
-// Note que o nome da função mudou para RegisterForm
 export default function RegisterForm() {
   const [studentData, setStudentData] = useState({
     nome: "",
