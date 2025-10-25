@@ -3,6 +3,8 @@ package com.moeda.estudantil.Aluno;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.moeda.estudantil.Usuario.Usuario;
+
 import java.util.Optional;
 
 @Repository

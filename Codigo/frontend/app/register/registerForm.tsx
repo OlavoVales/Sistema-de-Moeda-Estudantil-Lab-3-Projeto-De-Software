@@ -80,7 +80,6 @@ export default function RegisterForm() {
       });
 
       if (response.ok) {
-        alert('Conta de aluno criada com sucesso! Você será redirecionado para o login.');
         window.location.href = '/login';
       } else {
         const error = await response.text();
@@ -116,7 +115,6 @@ export default function RegisterForm() {
       });
 
       if (response.ok) {
-        alert('Conta de empresa criada com sucesso! Você será redirecionado para o login.');
         window.location.href = '/login';
       } else {
         const error = await response.text();
