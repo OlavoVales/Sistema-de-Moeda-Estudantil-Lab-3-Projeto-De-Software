@@ -11,6 +11,9 @@ import com.moeda.estudantil.Aluno.AlunoRepository;
 import com.moeda.estudantil.EmpresaParceira.EmpresaParceira;
 import com.moeda.estudantil.EmpresaParceira.EmpresaParceiraRegisterDTO;
 import com.moeda.estudantil.EmpresaParceira.EmpresaRepository;
+import com.moeda.estudantil.Professor.Professor;
+import com.moeda.estudantil.Professor.ProfessorRegisterDTO;
+import com.moeda.estudantil.Professor.ProfessorRepository;
 import com.moeda.estudantil.TipoUsuario.TipoUsuario;
 import com.moeda.estudantil.Usuario.Usuario;
 import com.moeda.estudantil.Usuario.UsuarioRepository;
@@ -23,6 +26,9 @@ public class CadastroService {
 
     @Autowired
     private AlunoRepository alunoRepository;
+
+    @Autowired
+    private ProfessorRepository professorRepository;
     
     @Autowired
     private EmpresaRepository empresaRepository;
@@ -69,5 +75,23 @@ public class CadastroService {
         novaEmpresa.setUsuario(usuarioSalvo);
     
         empresaRepository.save(novaEmpresa);
+    }
+
+    @Transactional
+    public void cadastrarProfessor(ProfessorRegisterDTO dto) {
+        if (usuarioRepository.existsByEmail(dto.email())) {
+            throw new RuntimeException("Email já cadastrado.");
+      }
+
+        Usuario novoUsuario = new Usuario();
+        novoUsuario.setNome(dto.nome());
+        novoUsuario.setEmail(dto.email());
+        novoUsuario.setSenha(passwordEncoder.encode(dto.senha()));
+        novoUsuario.setTipoUsuario(TipoUsuario.PROFESSOR);
+        Usuario usuarioSalvo = usuarioRepository.save(novoUsuario);
+
+        Professor novoProfessor = new Professor(dto);
+        novoProfessor.setUsuario(usuarioSalvo);
+        professorRepository.save(novoProfessor);
     }
 }

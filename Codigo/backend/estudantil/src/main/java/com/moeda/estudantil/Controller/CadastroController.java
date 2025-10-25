@@ -2,6 +2,7 @@ package com.moeda.estudantil.Controller;
 
 import com.moeda.estudantil.Aluno.AlunoRegisterDTO;
 import com.moeda.estudantil.EmpresaParceira.EmpresaParceiraRegisterDTO;
+import com.moeda.estudantil.Professor.ProfessorRegisterDTO;
 import com.moeda.estudantil.Service.CadastroService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,5 +30,11 @@ public class CadastroController {
     public ResponseEntity<String> cadastrarEmpresa(@Valid @RequestBody EmpresaParceiraRegisterDTO empresaDTO) {
         cadastroService.cadastrarEmpresa(empresaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Empresa cadastrada com sucesso!");
+    }
+
+    @PostMapping("/professor")
+    public ResponseEntity<String> cadastrarProfessor(@Valid @RequestBody ProfessorRegisterDTO professorDTO) {
+        cadastroService.cadastrarProfessor(professorDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Professor cadastrado com sucesso!");
     }
 }
