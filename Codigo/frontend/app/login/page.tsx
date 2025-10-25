@@ -8,9 +8,16 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Coins, GraduationCap, Briefcase, Users } from "lucide-react"
 import { useState } from "react";
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string;
+  nome: string;
+  role: string;
+}
 
 export default function LoginPage() {
-  
+
   const [studentCreds, setStudentCreds] = useState({ email: '', password: '' });
   const [profCreds, setProfCreds] = useState({ email: '', password: '' });
   const [companyCreds, setCompanyCreds] = useState({ email: '', password: '' });
@@ -31,7 +38,7 @@ export default function LoginPage() {
     setCompanyCreds(prev => ({ ...prev, [id === 'company-email' ? 'email' : 'password']: value }));
   };
 
-  const handleLogin = async (e, credentials) => {
+  const handleLogin = async (e, credentials, expectedUserType) => {
     e.preventDefault(); 
     setError(''); 
 
@@ -46,18 +53,43 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: credentials.email,
-          senha: credentials.password 
+          senha: credentials.password,
+          tipoEsperado: expectedUserType
         })
       });
 
       if (response.ok) {
         const data = await response.json(); 
-        
-        localStorage.setItem('authToken', data.token); 
-        
-        window.location.href = '/student/dashboard'; 
+        const token = data.token;
+        localStorage.setItem('authToken', token); 
+
+        try {
+          const decodedToken = jwtDecode<JwtPayload>(token);
+          const userRole = decodedToken.role;
+
+          switch (userRole) {
+            case 'ALUNO':
+              window.location.href = '/student/dashboard';
+              break;
+            case 'PROFESSOR':
+              window.location.href = '/professor/dashboard';
+              break;
+            case 'EMPRESAPARCEIRA':
+              window.location.href = '/company/dashboard';
+              break;
+            default:
+              console.warn("Papel do usuário não reconhecido:", userRole);
+              window.location.href = '/app'; 
+              break;
+          }
+        } catch (decodeError) {
+          console.error("Erro ao decodificar o token:", decodeError);
+          setError("Erro ao processar o login. Tente novamente.");
+        }
+
       } else {
-        setError('Email ou senha incorretos. Tente novamente.');
+        const errorText = await response.text();
+        setError(errorText || 'Email, senha ou tipo de usuário incorretos.'); 
       }
     } catch (err) {
       console.error("Erro ao tentar fazer login:", err);
@@ -68,13 +100,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-secondary/30">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        
+
         <div className="hidden lg:block space-y-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
               <Coins className="w-7 h-7 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold">MeritCoin</span>
+            <span className="text-2xl font-bold">S.G.M.E</span>
           </Link>
           <div className="space-y-4">
             <h1 className="text-5xl font-bold leading-tight text-balance">Bem-vindo de volta ao sistema de mérito</h1>
@@ -107,7 +139,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        
+
         <Card className="p-8 space-y-6">
           <div className="lg:hidden text-center">
              <Link href="/" className="inline-flex items-center gap-2 mb-6">
@@ -123,7 +155,7 @@ export default function LoginPage() {
             <p className="text-muted-foreground">Selecione o tipo de conta e faça login</p>
           </div>
 
-          
+
           {error && (
             <div className="p-3 text-center bg-destructive/10 text-destructive rounded-md text-sm font-medium">
               {error}
@@ -137,13 +169,11 @@ export default function LoginPage() {
               <TabsTrigger value="company">Empresa</TabsTrigger>
             </TabsList>
 
-            
+
             <TabsContent value="student" className="mt-6">
-              
-              <form onSubmit={(e) => handleLogin(e, studentCreds)} className="space-y-4">
+              <form onSubmit={(e) => handleLogin(e, studentCreds, 'ALUNO')} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="student-email">Email</Label>
-                  
                   <Input 
                     id="student-email" 
                     type="email" 
@@ -181,10 +211,9 @@ export default function LoginPage() {
               </form>
             </TabsContent>
 
-            
+
             <TabsContent value="professor" className="mt-6">
-              
-              <form onSubmit={(e) => handleLogin(e, profCreds)} className="space-y-4">
+              <form onSubmit={(e) => handleLogin(e, profCreds, 'PROFESSOR')} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="professor-email">Email Institucional</Label>
                   <Input 
@@ -221,10 +250,9 @@ export default function LoginPage() {
               </form>
             </TabsContent>
 
-            
+
             <TabsContent value="company" className="mt-6">
-              
-              <form onSubmit={(e) => handleLogin(e, companyCreds)} className="space-y-4">
+              <form onSubmit={(e) => handleLogin(e, companyCreds, 'EMPRESAPARCEIRA')} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="company-email">Email Corporativo</Label>
                   <Input 

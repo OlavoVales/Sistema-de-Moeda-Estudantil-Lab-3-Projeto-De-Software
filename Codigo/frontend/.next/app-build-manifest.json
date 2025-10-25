@@ -21,6 +21,16 @@
       "static/chunks/main-app.js",
       "static/chunks/app/student/dashboard/page.js"
     ],
+    "/register/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/register/page.js"
+    ],
+    "/company/dashboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/company/dashboard/page.js"
+    ],
     "/student/rewards/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -30,6 +40,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/student/rewards/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

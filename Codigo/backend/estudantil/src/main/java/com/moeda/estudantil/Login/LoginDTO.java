@@ -1,5 +1,7 @@
 package com.moeda.estudantil.Login;
 
-public record LoginDTO(String email, String senha) {
+import com.moeda.estudantil.TipoUsuario.TipoUsuario;
+
+public record LoginDTO(String email, String senha, TipoUsuario tipoEsperado) { 
     
 }
