@@ -9,4 +9,6 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     List<Transacao> findByProfessorIdOrderByDataHoraDesc(Long professorId);
 
+    List<Transacao> findByAlunoIdOrderByDataHoraDesc(Long alunoId);
+
 }

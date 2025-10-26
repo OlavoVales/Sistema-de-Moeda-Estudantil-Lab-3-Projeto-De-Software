@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Coins, TrendingUp, Store, ArrowUpRight, ArrowDownRight, LogOut, User } from "lucide-react"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
@@ -25,18 +25,61 @@ interface AlunoData {
   saldo: number;
 }
 
+interface TransacaoAluno {
+  id: number;
+  tipo: string;
+  quantidade: number;
+  motivo: string;
+  origemDestino: string;
+  dataHora: string;
+}
+
 export default function StudentDashboard() {
   const [alunoData, setAlunoData] = useState<AlunoData | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [historico, setHistorico] = useState<TransacaoAluno[]>([]);
+  const [historicoLoading, setHistoricoLoading] = useState(true);
+
+  const fetchHistoricoAluno = useCallback(async (studId: number, token: string) => {
+    setHistoricoLoading(true);
+    setErrorMessage(''); // Limpa erros antigos do histórico
+    try {
+      const histURL = `http://localhost:8080/api/alunos/${studId}/transacoes`;
+      console.log('fetchHistoricoAluno: Tentando buscar histórico em:', histURL);
+
+      const histResponse = await fetch(histURL, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      console.log('fetchHistoricoAluno: Resposta do fetch (histórico) recebida. Status:', histResponse.status);
+
+      if (histResponse.ok) {
+        const histData: TransacaoAluno[] = await histResponse.json();
+        setHistorico(histData);
+        console.log("fetchHistoricoAluno: Histórico carregado:", histData);
+      } else {
+        const histErrorText = await histResponse.text();
+        console.error(`fetchHistoricoAluno: Erro ${histResponse.status} ao buscar histórico. StatusText: ${histResponse.statusText}. Body: ${histErrorText}`);
+        setErrorMessage(prev => prev.includes('histórico') ? prev : (prev ? prev + ' | ' : '') + `Erro ${histResponse.status} ao buscar histórico.`);
+      }
+    } catch (error) {
+      console.error("fetchHistoricoAluno: Erro de rede ao buscar histórico:", error);
+      setErrorMessage(prev => prev.includes('histórico') ? prev : (prev ? prev + ' | ' : '') + "Erro de conexão ao buscar histórico.");
+    } finally {
+        setHistoricoLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchAlunoData = async () => {
-      setErrorMessage(''); 
+    const fetchData = async () => {
+      setErrorMessage('');
+      setHistoricoLoading(true); // Inicia loading do histórico também
       const token = localStorage.getItem('authToken');
       console.log('useEffect: Token lido do localStorage:', token);
 
       if (token) {
+        let currentAlunoId: number | null = null;
         try {
           const decodedToken = jwtDecode<JwtPayload>(token);
           const userEmail = decodedToken.sub;
@@ -51,35 +94,40 @@ export default function StudentDashboard() {
           };
           console.log('useEffect: Headers a serem enviados:', requestHeaders);
 
-          const response = await fetch(fetchURL, {
+          const alunoResponse = await fetch(fetchURL, {
             headers: requestHeaders
           });
 
-          console.log('useEffect: Resposta do fetch (aluno) recebida. Status:', response.status);
+          console.log('useEffect: Resposta do fetch (aluno) recebida. Status:', alunoResponse.status);
 
-          if (response.ok) {
-            const data: AlunoData = await response.json();
+          if (alunoResponse.ok) {
+            const data: AlunoData = await alunoResponse.json();
             console.log('useEffect: Dados recebidos da API (aluno):', data);
 
             if (data && typeof data.saldo !== 'undefined') {
                  setAlunoData(data);
+                 currentAlunoId = data.id;
                  console.log("useEffect: Dados do Aluno setados no estado.");
-                 setErrorMessage(''); 
+                 setErrorMessage('');
+                 fetchHistoricoAluno(currentAlunoId, token);
             } else {
                  console.error('useEffect: Dados recebidos da API (aluno) estão incompletos ou inválidos:', data);
                  setErrorMessage('Dados do aluno retornados pela API estão incompletos.');
+                 setHistoricoLoading(false);
+                 return;
             }
 
           } else {
-            const errorText = await response.text();
-            console.error(`useEffect: Erro ${response.status} ao buscar dados do aluno. StatusText: ${response.statusText}. Body: ${errorText}`);
-            if (response.status === 404) {
-                 setErrorMessage(`Erro ${response.status}: Perfil de aluno não encontrado para este usuário.`);
-            } else if (response.status === 403) {
-                 setErrorMessage(`Erro ${response.status}: Acesso negado. Verifique o token.`);
+            const errorText = await alunoResponse.text();
+            console.error(`useEffect: Erro ${alunoResponse.status} ao buscar dados do aluno. StatusText: ${alunoResponse.statusText}. Body: ${errorText}`);
+            if (alunoResponse.status === 404) {
+                 setErrorMessage(`Erro ${alunoResponse.status}: Perfil de aluno não encontrado para este usuário.`);
+            } else if (alunoResponse.status === 403) {
+                 setErrorMessage(`Erro ${alunoResponse.status}: Acesso negado. Verifique o token.`);
             } else {
-                 setErrorMessage(`Erro ${response.status} ao buscar dados do aluno.`);
+                 setErrorMessage(`Erro ${alunoResponse.status} ao buscar dados do aluno.`);
             }
+            setHistoricoLoading(false);
           }
         } catch (error) {
           console.error("useEffect: Erro no try-catch (decodificar token ou fetch):", error);
@@ -88,19 +136,20 @@ export default function StudentDashboard() {
           } else {
               setErrorMessage("Erro de conexão ou ao processar token.");
           }
+          setHistoricoLoading(false);
         }
       } else {
         console.warn("useEffect: Token não encontrado no localStorage.");
         setErrorMessage("Sessão inválida. Faça login novamente.");
-        // window.location.href = '/login'; 
+        setHistoricoLoading(false);
       }
     };
 
-    fetchAlunoData();
-  }, []);
+    fetchData();
+  }, [fetchHistoricoAluno]);
 
   const getInitials = (name: string) => {
-    if (!name) return '';
+    if (!name) return '?';
     const names = name.split(' ');
     if (names.length === 1) return names[0].charAt(0).toUpperCase();
     return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
@@ -233,72 +282,54 @@ export default function StudentDashboard() {
             </Button>
           </div>
           <Card className="divide-y divide-border">
-            <div className="p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                  <ArrowDownRight className="w-6 h-6 text-success" />
+            {historicoLoading && <p className="p-4 text-center text-muted-foreground">Carregando histórico...</p>}
+            {!historicoLoading && historico.length === 0 && (
+              <p className="p-4 text-center text-muted-foreground">Nenhuma transação registrada ainda.</p>
+            )}
+            {!historicoLoading && historico.map((transacao) => {
+              const isRecebimento = transacao.tipo === 'DISTRIBUICAO';
+              
+              return (
+                <div key={transacao.id} className="p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      isRecebimento ? 'bg-success/10' : 'bg-primary/10'
+                    }`}>
+                      {isRecebimento ? (
+                        <ArrowDownRight className="w-6 h-6 text-success" />
+                      ) : (
+                        <ArrowUpRight className="w-6 h-6 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {isRecebimento ? `Recebido de ${transacao.origemDestino}` : transacao.origemDestino}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{transacao.motivo}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(transacao.dataHora).toLocaleString('pt-BR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xl font-bold ${
+                      isRecebimento ? 'text-success' : 'text-muted-foreground'
+                    }`}>
+                      {isRecebimento ? '+' : '-'}{transacao.quantidade}
+                    </p>
+                    <Badge variant={isRecebimento ? 'secondary' : 'outline'} className="mt-1">
+                      {isRecebimento ? 'Recebido' : 'Resgatado'}
+                    </Badge>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium">Recebido de Prof. Maria Silva</p>
-                  <p className="text-sm text-muted-foreground">Excelente participação em aula</p>
-                  <p className="text-xs text-muted-foreground mt-1">Hoje às 14:30</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-success">+50</p>
-                <Badge variant="secondary" className="mt-1">
-                  Recebido
-                </Badge>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ArrowUpRight className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Desconto Restaurante Universitário</p>
-                  <p className="text-sm text-muted-foreground">Cupom #MC-2024-001</p>
-                  <p className="text-xs text-muted-foreground mt-1">Ontem às 12:15</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-muted-foreground">-100</p>
-                <Badge variant="outline">Resgatado</Badge>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                  <ArrowDownRight className="w-6 h-6 text-success" />
-                </div>
-                <div>
-                  <p className="font-medium">Recebido de Prof. João Santos</p>
-                  <p className="text-sm text-muted-foreground">Trabalho excepcional entregue</p>
-                  <p className="text-xs text-muted-foreground mt-1">2 dias atrás</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-success">+100</p>
-                <Badge variant="secondary">Recebido</Badge>
-              </div>
-            </div>
-            <div className="p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ArrowUpRight className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Material Didático - Livraria Campus</p>
-                  <p className="text-sm text-muted-foreground">Cupom #MC-2024-002</p>
-                  <p className="text-xs text-muted-foreground mt-1">3 dias atrás</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-muted-foreground">-150</p>
-                <Badge variant="outline">Resgatado</Badge>
-              </div>
-            </div>
+              );
+            })}
           </Card>
         </div>
       </div>
