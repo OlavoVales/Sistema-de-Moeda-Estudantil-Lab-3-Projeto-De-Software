@@ -1236,6 +1236,12 @@ font-weight: 100 900;
   .border-destructive {
     border-color: var(--destructive);
   }
+  .border-destructive\/30 {
+    border-color: var(--destructive);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--destructive) 30%, transparent);
+    }
+  }
   .border-input {
     border-color: var(--input);
   }
@@ -1763,6 +1769,9 @@ font-weight: 100 900;
     @supports (color: color-mix(in lab, red, red)) {
       color: color-mix(in oklab, var(--foreground) 50%, transparent);
     }
+  }
+  .text-green-600 {
+    color: var(--color-green-600);
   }
   .text-muted-foreground {
     color: var(--muted-foreground);
