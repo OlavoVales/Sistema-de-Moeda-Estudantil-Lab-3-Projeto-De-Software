@@ -1,21 +1,120 @@
+"use client";
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Coins, TrendingUp, Store, ArrowUpRight, ArrowDownRight, LogOut, User } from "lucide-react"
+import { useState, useEffect } from "react";
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string;
+  nome: string;
+  role: string;
+}
+
+interface AlunoData {
+  id: number;
+  cpf: string;
+  rg: string | null;
+  endereco: string | null;
+  instituicao: string | null;
+  curso: string | null;
+  saldo: number;
+}
 
 export default function StudentDashboard() {
+  const [alunoData, setAlunoData] = useState<AlunoData | null>(null);
+  const [userName, setUserName] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const fetchAlunoData = async () => {
+      setErrorMessage(''); 
+      const token = localStorage.getItem('authToken');
+      console.log('useEffect: Token lido do localStorage:', token);
+
+      if (token) {
+        try {
+          const decodedToken = jwtDecode<JwtPayload>(token);
+          const userEmail = decodedToken.sub;
+          setUserName(decodedToken.nome);
+
+          const encodedEmail = encodeURIComponent(userEmail);
+          const fetchURL = `http://localhost:8080/api/alunos/by-email/${encodedEmail}`;
+          console.log('useEffect: Tentando buscar dados do aluno em:', fetchURL);
+
+          const requestHeaders = {
+            'Authorization': `Bearer ${token}`
+          };
+          console.log('useEffect: Headers a serem enviados:', requestHeaders);
+
+          const response = await fetch(fetchURL, {
+            headers: requestHeaders
+          });
+
+          console.log('useEffect: Resposta do fetch (aluno) recebida. Status:', response.status);
+
+          if (response.ok) {
+            const data: AlunoData = await response.json();
+            console.log('useEffect: Dados recebidos da API (aluno):', data);
+
+            if (data && typeof data.saldo !== 'undefined') {
+                 setAlunoData(data);
+                 console.log("useEffect: Dados do Aluno setados no estado.");
+                 setErrorMessage(''); 
+            } else {
+                 console.error('useEffect: Dados recebidos da API (aluno) estão incompletos ou inválidos:', data);
+                 setErrorMessage('Dados do aluno retornados pela API estão incompletos.');
+            }
+
+          } else {
+            const errorText = await response.text();
+            console.error(`useEffect: Erro ${response.status} ao buscar dados do aluno. StatusText: ${response.statusText}. Body: ${errorText}`);
+            if (response.status === 404) {
+                 setErrorMessage(`Erro ${response.status}: Perfil de aluno não encontrado para este usuário.`);
+            } else if (response.status === 403) {
+                 setErrorMessage(`Erro ${response.status}: Acesso negado. Verifique o token.`);
+            } else {
+                 setErrorMessage(`Erro ${response.status} ao buscar dados do aluno.`);
+            }
+          }
+        } catch (error) {
+          console.error("useEffect: Erro no try-catch (decodificar token ou fetch):", error);
+          if (error instanceof TypeError && error.message === 'Failed to fetch') {
+              setErrorMessage("Erro de conexão: Não foi possível conectar ao servidor backend. Verifique se ele está rodando e acessível.");
+          } else {
+              setErrorMessage("Erro de conexão ou ao processar token.");
+          }
+        }
+      } else {
+        console.warn("useEffect: Token não encontrado no localStorage.");
+        setErrorMessage("Sessão inválida. Faça login novamente.");
+        // window.location.href = '/login'; 
+      }
+    };
+
+    fetchAlunoData();
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-secondary/30">
-      {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Coins className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">S.G.M.E</span>
+            <span className="text-xl font-bold">MeritCoin</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
@@ -31,18 +130,24 @@ export default function StudentDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Welcome Section */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold">Olá, João Silva!</h1>
+            <h1 className="text-3xl font-bold">Olá, {userName || 'Aluno'}!</h1>
             <p className="text-muted-foreground">Bem-vindo ao seu painel de estudante</p>
           </div>
           <Avatar className="w-16 h-16">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xl">JS</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              {getInitials(userName)}
+            </AvatarFallback>
           </Avatar>
         </div>
 
-        {/* Balance Card */}
+        {errorMessage && (
+             <Card className="p-4 bg-destructive/10 text-destructive border-destructive/30">
+                 <p className="text-sm font-medium">{errorMessage}</p>
+             </Card>
+        )}
+
         <Card className="p-8 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -50,7 +155,11 @@ export default function StudentDashboard() {
                 <p className="text-sm opacity-90">Saldo Disponível</p>
                 <div className="flex items-center gap-3 mt-2">
                   <Coins className="w-10 h-10" />
-                  <span className="text-5xl font-bold">1,250</span>
+                  <span className="text-5xl font-bold">
+                    {alunoData?.saldo !== null && typeof alunoData?.saldo !== 'undefined'
+                       ? alunoData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+                       : '---'}
+                  </span>
                 </div>
               </div>
               <Button variant="secondary" asChild>
@@ -73,9 +182,8 @@ export default function StudentDashboard() {
           </div>
         </Card>
 
-        {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-4">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" asChild>
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <Link href="/student/rewards">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -88,7 +196,7 @@ export default function StudentDashboard() {
               </div>
             </Link>
           </Card>
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" asChild>
+          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <Link href="/student/transactions">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -114,7 +222,6 @@ export default function StudentDashboard() {
           </Card>
         </div>
 
-        {/* Recent Transactions */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Transações Recentes</h2>
