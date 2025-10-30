@@ -61,7 +61,8 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 
 ## 👥 Equipe
 
-Fernanda Soares Oliveira Cunha | Gabriel Reis Lebron
+Fernanda Soares Oliveira Cunha 
+Gabriel Reis Lebron
 
 
 ## 📚 Professor Responsável
@@ -71,7 +72,8 @@ Fernanda Soares Oliveira Cunha | Gabriel Reis Lebron
 ## 🏁 Status
 
 **Release 1 — Concluído**
-**Release 1 — Em desenvolvimento**
+
+**Release 2— Em desenvolvimento**
 
 ---
 
