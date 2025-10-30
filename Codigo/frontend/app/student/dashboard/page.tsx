@@ -43,7 +43,7 @@ export default function StudentDashboard() {
 
   const fetchHistoricoAluno = useCallback(async (studId: number, token: string) => {
     setHistoricoLoading(true);
-    setErrorMessage(''); // Limpa erros antigos do histórico
+    setErrorMessage('');
     try {
       const histURL = `http://localhost:8080/api/alunos/${studId}/transacoes`;
       console.log('fetchHistoricoAluno: Tentando buscar histórico em:', histURL);
@@ -74,7 +74,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       setErrorMessage('');
-      setHistoricoLoading(true); // Inicia loading do histórico também
+      setHistoricoLoading(true);
       const token = localStorage.getItem('authToken');
       console.log('useEffect: Token lido do localStorage:', token);
 

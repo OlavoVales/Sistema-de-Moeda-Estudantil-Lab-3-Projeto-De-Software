@@ -19,7 +19,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
+import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
@@ -58,7 +58,6 @@ export default function ProfessorDashboard() {
   const [historico, setHistorico] = useState<Transacao[]>([]);
   const [historicoLoading, setHistoricoLoading] = useState(true);
 
-  // --- Função Separada para Buscar Histórico ---
   const fetchHistorico = useCallback(async (profId: number, token: string) => {
     setHistoricoLoading(true);
     try {
@@ -86,9 +85,10 @@ export default function ProfessorDashboard() {
     } finally {
         setHistoricoLoading(false);
     }
-  }, []); // useCallback para evitar recriação desnecessária
+  }, []);
 
   useEffect(() => {
+    document.title = "Dashboard - Professor";
     const fetchData = async () => {
       const token = localStorage.getItem('authToken');
       console.log('useEffect: Token lido do localStorage:', token);
@@ -120,7 +120,6 @@ export default function ProfessorDashboard() {
                  currentProfessorId = data.id;
                  console.log("useEffect: Dados do Professor setados no estado.");
                  setErrorMessage('');
-                 // --- Chama fetchHistorico aqui ---
                  fetchHistorico(currentProfessorId, token); 
             } else {
                  console.error('useEffect: Dados recebidos da API (professor) estão incompletos ou inválidos:', data);
@@ -147,7 +146,7 @@ export default function ProfessorDashboard() {
     };
 
     fetchData();
-  }, [fetchHistorico]); // Adiciona fetchHistorico como dependência do useEffect
+  }, [fetchHistorico]);
 
   const handleDistributeCoins = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,13 +156,13 @@ export default function ProfessorDashboard() {
 
     const token = localStorage.getItem('authToken');
 
-    if (!token || !professorData?.id) { // Verifica token e professorId juntos
+    if (!token || !professorData?.id) {
       setErrorMessage("Erro de autenticação ou professor não identificado. Faça login novamente ou recarregue.");
       setIsLoading(false);
       return;
     }
 
-    const currentProfessorId = professorData.id; // Garante que temos o ID
+    const currentProfessorId = professorData.id;
 
     const payload = {
       alunoEmail: alunoEmail,
@@ -190,17 +189,12 @@ export default function ProfessorDashboard() {
       if (response.ok) {
         setSuccessMessage("Moedas enviadas com sucesso!");
         
-        // --- REMOVIDA A ATUALIZAÇÃO OTIMISTA ---
-        // const novaTransacao: Transacao = { ... };
-        // setHistorico(prevHistorico => [novaTransacao, ...prevHistorico]);
-
         setTimeout(() => {
             setAlunoEmail('');
             setQuantidade('');
             setMotivo('');
             setIsDialogOpen(false);
             setSuccessMessage('');
-            // --- CHAMA fetchHistorico para atualizar ---
             fetchHistorico(currentProfessorId, token); 
         }, 1500);
       } else {
