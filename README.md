@@ -76,10 +76,4 @@ Gabriel Reis Lebron
 
 **Release 2— Em desenvolvimento**
 
----
 
-
-
----
-
-> Quer que eu gere também: `CONTRIBUTING.md`, `API.md` (documentação OpenAPI/Swagger), ou um `CHANGELOG.md` com convenção SemVer?
