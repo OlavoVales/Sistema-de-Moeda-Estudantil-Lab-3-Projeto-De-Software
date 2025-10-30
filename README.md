@@ -46,51 +46,11 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 * **Controle de versão:** GitHub
 
 
-## 🖇️ Modelo de Dados (resumo)
+## 🖇️ Diagramas
 
-* **Usuário** (tipo: ALUNO | PROFESSOR | EMPRESA)
 
-  * id, nome, email, senha(hashed), tipo, criadoEm
-* **Aluno**
 
-  * userId (FK), instituicao, matricula, notificacoes
-* **Professor**
 
-  * userId (FK), departamento, saldoSemestral
-* **EmpresaParceira**
-
-  * userId (FK), descricao, contato
-* **Vantagem**
-
-  * id, empresaId (FK), titulo, descricao, fotoUrl, custoMoedas, ativo
-* **Transacao**
-
-  * id, remetenteId (FK), destinatarioId (FK), tipo (CRÉDITO|DÉBITO|RESGATE), valor, motivo, data
-* **Resgate**
-
-  * id, alunoId (FK), vantagemId (FK), codigoConferencia, estado (PENDENTE|CONFIRMADO|CANCELADO), criadoEm
-
-> Observação: manter logs/impressão de auditoria para transações financeiras virtuais.
-
-## 🔌 Endpoints API (exemplos)
-
-* `POST /api/auth/login` — autenticação
-* `POST /api/auth/register` — registro de usuário (com role)
-* `GET /api/alunos/{id}` — obter perfil do aluno
-* `POST /api/professores/{id}/creditar` — creditar moedas a um aluno
-* `GET /api/usuarios/{id}/extrato` — histórico de transações
-* `POST /api/resgates` — criar resgate de vantagem
-* `GET /api/empresas/{id}/vantagens` — listar vantagens
-
-> Implementar validação e tratamento de erros consistente (HTTP 4xx/5xx) e respostas padronizadas.
-
-## ✉️ Notificações e Códigos de Conferência
-
-* Emails transacionais para:
-
-  * Aluno: ao receber moedas / gerar cupom de resgate
-  * Empresa: ao realizar resgate — inclui `codigoConferencia` (gerado criptograficamente)
-* Cupom digital com QR code e código alfanumérico para conferência presencial.
 
 
 ## 📦 Como rodar (instruções rápidas)
