@@ -62,6 +62,7 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 ## 👥 Equipe
 
 Fernanda Soares Oliveira Cunha 
+
 Gabriel Reis Lebron
 
 
