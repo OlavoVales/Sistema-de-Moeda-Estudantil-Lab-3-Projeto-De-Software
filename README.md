@@ -1,6 +1,6 @@
 # Sistema de Moeda Estudantil
 
-Projeto desenvolvido como parte do Laboratório de Desenvolvimento de Software — **Release 1**
+Projeto desenvolvido como parte do Laboratório de Desenvolvimento de Software 
 
 > Um ecossistema de recompensas que incentiva mérito acadêmico por meio de uma moeda virtual. Professores reconhecem alunos com moedas; alunos trocam moedas por vantagens oferecidas por empresas parceiras.
 
