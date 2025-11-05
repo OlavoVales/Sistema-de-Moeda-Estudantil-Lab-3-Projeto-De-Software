@@ -10,4 +10,6 @@ public interface EmpresaRepository extends JpaRepository<EmpresaParceira, Long> 
     
     Optional<EmpresaParceira> findByCnpj(String cnpj);
 
+    Optional<EmpresaParceira> findByUsuarioId(Long usuarioId);
+
 }
