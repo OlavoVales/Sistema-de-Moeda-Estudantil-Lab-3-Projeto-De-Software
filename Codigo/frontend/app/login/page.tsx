@@ -146,7 +146,7 @@ export default function LoginPage() {
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <Coins className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">MeritCoin</span>
+              <span className="text-xl font-bold">S.G.M.E</span>
             </Link>
           </div>
 

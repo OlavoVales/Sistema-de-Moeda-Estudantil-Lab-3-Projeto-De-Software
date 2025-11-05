@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -6,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Store, Plus, TrendingUp, Users, LogOut, User, ArrowUpRight, Package } from "lucide-react"
+import { Store, Plus, TrendingUp, Users, LogOut, User, ArrowUpRight, Package, Loader2, Coins } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -14,19 +16,173 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
+import { useState, useEffect, useCallback } from "react";
+import { jwtDecode } from 'jwt-decode';
 
-export default function CompanyDashboard() {
+interface JwtPayload {
+  sub: string;
+  nome: string;
+  role: string;
+}
+
+interface Vantagem {
+  id: number;
+  nome: string;
+  descricao: string;
+  custoMoedas: number;
+  quantidadeDisponivel: number | null;
+}
+
+interface VantagemFormDTO {
+  nome: string;
+  descricao: string;
+  custoMoedas: string;
+  quantidadeDisponivel: string;
+}
+
+export default function CompanyDashboardClient() {
+  const [userName, setUserName] = useState<string>('');
+  const [vantagens, setVantagens] = useState<Vantagem[]>([]);
+  const [vantagensLoading, setVantagensLoading] = useState(true);
+
+  const [form, setForm] = useState<VantagemFormDTO>({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pageError, setPageError] = useState('');
+  
+  const fetchVantagens = useCallback(async (token: string) => {
+    setVantagensLoading(true);
+    try {
+      const vantURL = `http://localhost:8080/api/empresas/vantagens`;
+      const response = await fetch(vantURL, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data: Vantagem[] = await response.json();
+        setVantagens(data);
+      } else {
+        console.error("Erro ao buscar vantagens:", response.statusText);
+        setPageError("Erro ao carregar vantagens.");
+      }
+    } catch (error) {
+      console.error("Erro de rede ao buscar vantagens:", error);
+      setPageError("Erro de conexão ao carregar vantagens.");
+    } finally {
+      setVantagensLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode<JwtPayload>(token);
+        setUserName(decodedToken.nome);
+        fetchVantagens(token);
+      } catch (error) {
+        console.error("Token inválido:", error);
+        setPageError("Sessão inválida.");
+        setVantagensLoading(false);
+      }
+    } else {
+      console.warn("Token não encontrado.");
+      setPageError("Faça login para continuar.");
+      setVantagensLoading(false);
+    }
+  }, [fetchVantagens]);
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setForm(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setForm({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
+      setErrorMessage('');
+      setSuccessMessage('');
+    }
+  };
+
+  const handleCadastroVantagem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setErrorMessage("Sessão expirada. Faça login novamente.");
+      setIsLoading(false);
+      return;
+    }
+
+    const payload = {
+      nome: form.nome,
+      descricao: form.descricao,
+      custoMoedas: parseFloat(form.custoMoedas),
+      quantidadeDisponivel: form.quantidadeDisponivel ? parseInt(form.quantidadeDisponivel, 10) : null
+    };
+
+    if (isNaN(payload.custoMoedas) || payload.custoMoedas < 0) {
+        setErrorMessage("Custo de moedas inválido.");
+        setIsLoading(false);
+        return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/empresas/vantagens`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const novaVantagem: Vantagem = await response.json();
+        setSuccessMessage("Vantagem cadastrada com sucesso!");
+        setVantagens(prev => [novaVantagem, ...prev]);
+        setTimeout(() => {
+            setForm({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
+            setIsDialogOpen(false);
+            setSuccessMessage('');
+        }, 1500);
+      } else {
+        const errorText = await response.text();
+        setErrorMessage(errorText || "Erro ao cadastrar vantagem.");
+      }
+    } catch (error) {
+      console.error("Erro de rede ao cadastrar:", error);
+      setErrorMessage("Erro de conexão. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-secondary/30">
-      {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Store className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">MeritCoin</span>
+            <span className="text-xl font-bold">S.G.M.E</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
@@ -42,18 +198,24 @@ export default function CompanyDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Welcome Section */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold">Restaurante Universitário</h1>
+            <h1 className="text-3xl font-bold">Olá, {userName || 'Empresa'}!</h1>
             <p className="text-muted-foreground">Painel de Empresa Parceira</p>
           </div>
           <Avatar className="w-16 h-16">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xl">RU</AvatarFallback>
+            <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              {getInitials(userName)}
+            </AvatarFallback>
           </Avatar>
         </div>
 
-        {/* Stats Cards */}
+        {pageError && (
+          <Card className="p-4 bg-destructive/10 text-destructive border-destructive/30">
+            <p className="text-sm font-medium">{pageError}</p>
+          </Card>
+        )}
+
         <div className="grid md:grid-cols-4 gap-4">
           <Card className="p-6 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
             <div className="space-y-2">
@@ -62,7 +224,7 @@ export default function CompanyDashboard() {
                 <TrendingUp className="w-5 h-5" />
               </div>
               <p className="text-sm opacity-90">Vantagens Ativas</p>
-              <p className="text-3xl font-bold">5</p>
+              <p className="text-3xl font-bold">{vantagensLoading ? '...' : vantagens.length}</p>
             </div>
           </Card>
           <Card className="p-6">
@@ -88,9 +250,8 @@ export default function CompanyDashboard() {
           </Card>
         </div>
 
-        {/* Add Reward Button */}
         <div className="flex justify-end">
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button size="lg">
                 <Plus className="w-5 h-5 mr-2" />
@@ -102,104 +263,106 @@ export default function CompanyDashboard() {
                 <DialogTitle>Cadastrar Vantagem</DialogTitle>
                 <DialogDescription>Adicione uma nova vantagem para os alunos</DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 pt-4">
+              <form onSubmit={handleCadastroVantagem} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reward-name">Nome da Vantagem *</Label>
-                  <Input id="reward-name" placeholder="Ex: 20% de Desconto" />
+                  <Label htmlFor="nome">Nome da Vantagem *</Label>
+                  <Input id="nome" value={form.nome} onChange={handleFormChange} placeholder="Ex: Café Grátis" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="reward-description">Descrição *</Label>
-                  <Textarea id="reward-description" placeholder="Descreva os detalhes da vantagem..." rows={3} />
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea id="descricao" value={form.descricao} onChange={handleFormChange} placeholder="Descreva os detalhes da vantagem..." rows={3} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reward-cost">Custo em Moedas *</Label>
-                  <Input id="reward-cost" type="number" placeholder="Ex: 100" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="custoMoedas">Custo em Moedas *</Label>
+                    <Input id="custoMoedas" type="number" value={form.custoMoedas} onChange={handleFormChange} placeholder="Ex: 100" min="0" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quantidadeDisponivel">Qtd. Disponível</Label>
+                    <Input id="quantidadeDisponivel" type="number" value={form.quantidadeDisponivel} onChange={handleFormChange} placeholder="Ex: 50 (branco=ilimitado)" min="0" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reward-image">Foto do Produto</Label>
-                  <Input id="reward-image" type="file" accept="image/*" />
-                </div>
-                <Button className="w-full" size="lg">
-                  Cadastrar Vantagem
-                </Button>
-              </div>
+
+                {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+                {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
+                
+                <DialogFooter className="pt-4">
+                   <DialogClose asChild>
+                     <Button type="button" variant="outline" disabled={isLoading}>Cancelar</Button>
+                   </DialogClose>
+                   <Button type="submit" disabled={isLoading}>
+                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                     Cadastrar Vantagem
+                   </Button>
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* Active Rewards */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Vantagens Cadastradas</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                <Store className="w-16 h-16 text-white" />
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-lg">20% de Desconto</h3>
-                    <Badge variant="secondary">Ativa</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Válido para almoço ou jantar de segunda a sexta-feira</p>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="text-sm">
-                    <p className="text-muted-foreground">Custo</p>
-                    <p className="text-xl font-bold text-accent">100 moedas</p>
-                  </div>
-                  <div className="text-sm text-right">
-                    <p className="text-muted-foreground">Resgates</p>
-                    <p className="text-xl font-bold">45</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 bg-transparent">
-                    Editar
-                  </Button>
-                  <Button variant="outline" className="flex-1 bg-transparent">
-                    Desativar
-                  </Button>
-                </div>
-              </div>
-            </Card>
+          
+          {vantagensLoading && (
+            <div className="text-center p-8 text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+              <p>Carregando vantagens...</p>
+            </div>
+          )}
+          
+          {!vantagensLoading && vantagens.length === 0 && (
+             <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Nenhuma vantagem cadastrada ainda.</p>
+             </Card>
+          )}
 
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center">
-                <Store className="w-16 h-16 text-white" />
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-lg">Combo Lanche + Bebida</h3>
-                    <Badge variant="secondary">Ativa</Badge>
+          {!vantagensLoading && vantagens.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vantagens.map((vantagem) => (
+                <Card key={vantagem.id} className="overflow-hidden flex flex-col">
+                  <div className="aspect-video bg-gradient-to-br from-primary/80 to-primary/60 flex items-center justify-center">
+                    <Store className="w-16 h-16 text-white/90" />
                   </div>
-                  <p className="text-sm text-muted-foreground">Combo especial disponível durante todo o dia</p>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="text-sm">
-                    <p className="text-muted-foreground">Custo</p>
-                    <p className="text-xl font-bold text-accent">50 moedas</p>
+                  <div className="p-6 space-y-4 flex flex-col flex-1">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-lg">{vantagem.nome}</h3>
+                        <Badge variant="secondary">
+                          {vantagem.quantidadeDisponivel !== null ? `${vantagem.quantidadeDisponivel} rest.` : "Ilimitada"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {vantagem.descricao || "Sem descrição"}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div className="text-sm">
+                        <p className="text-muted-foreground">Custo</p>
+                        <p className="text-xl font-bold text-accent flex items-center gap-1">
+                          <Coins className="w-5 h-5" />
+                          {vantagem.custoMoedas.toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="text-sm text-right">
+                        <p className="text-muted-foreground">Resgates</p>
+                        <p className="text-xl font-bold">0</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" className="flex-1 bg-transparent">
+                        Editar
+                      </Button>
+                      <Button variant="outline" className="flex-1 bg-transparent">
+                        Desativar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-sm text-right">
-                    <p className="text-muted-foreground">Resgates</p>
-                    <p className="text-xl font-bold">82</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 bg-transparent">
-                    Editar
-                  </Button>
-                  <Button variant="outline" className="flex-1 bg-transparent">
-                    Desativar
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Recent Redemptions */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Resgates Recentes</h2>
