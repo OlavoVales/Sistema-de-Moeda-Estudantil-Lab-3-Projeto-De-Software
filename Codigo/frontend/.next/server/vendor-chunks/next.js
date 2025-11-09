@@ -32,6 +32,19 @@ eval("/* eslint-disable import/no-extraneous-dependencies */ \nObject.defineProp
 
 /***/ }),
 
+/***/ "(rsc)/./node_modules/next/dist/client/app-dir/link.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/next/dist/client/app-dir/link.js ***!
+  \*******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const { createProxy } = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js")
+
+module.exports = createProxy("C:\\Users\\PC\\Documents\\Projetos\\Spring Boot\\Sistema-de-Moeda-Estudantil-Lab-3-Projeto-De-Software\\Codigo\\frontend\\node_modules\\next\\dist\\client\\app-dir\\link.js")
+
+
+/***/ }),
+
 /***/ "(rsc)/./node_modules/next/dist/client/components/app-router-headers.js":
 /*!************************************************************************!*\
   !*** ./node_modules/next/dist/client/components/app-router-headers.js ***!

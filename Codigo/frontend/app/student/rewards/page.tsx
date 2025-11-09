@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Coins, ArrowLeft, Search, Store, Utensils, Book, Ticket, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
@@ -27,6 +27,7 @@ interface Vantagem {
   custoMoedas: number;
   quantidadeDisponivel: number | null;
   nomeEmpresa: string;
+  imagemUrl: string;
 }
 
 export default function RewardsClientPage() {
@@ -34,6 +35,48 @@ export default function RewardsClientPage() {
   const [alunoSaldo, setAlunoSaldo] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [resgateLoadingId, setResgateLoadingId] = useState<number | null>(null);
+
+  const fetchAlunoSaldo = useCallback(async (token: string, userEmail: string) => {
+    try {
+      const encodedEmail = encodeURIComponent(userEmail);
+      const alunoResponse = await fetch(`http://localhost:8080/api/alunos/by-email/${encodedEmail}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!alunoResponse.ok) {
+        throw new Error(`Falha ao buscar dados do aluno (status: ${alunoResponse.status})`);
+      }
+      const alunoData: AlunoData = await alunoResponse.json();
+      setAlunoSaldo(alunoData.saldo);
+      return true;
+    } catch (error) {
+      console.error("Erro ao buscar saldo:", error);
+      let msg = "Não foi possível carregar o saldo. Tente novamente.";
+      if (error instanceof Error) msg = error.message;
+      setErrorMessage(msg);
+      return false;
+    }
+  }, []);
+
+  const fetchVantagens = useCallback(async (token: string) => {
+    try {
+      const vantagensResponse = await fetch(`http://localhost:8080/api/vantagens`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!vantagensResponse.ok) {
+        throw new Error(`Falha ao buscar vantagens (status: ${vantagensResponse.status})`);
+      }
+      const vantData: Vantagem[] = await vantagensResponse.json();
+      setVantagens(vantData);
+      return true;
+    } catch (error) {
+      console.error("Erro ao buscar vantagens:", error);
+      let msg = "Não foi possível carregar as vantagens. Tente novamente.";
+      if (error instanceof Error) msg = error.message;
+      setErrorMessage(msg);
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,40 +93,73 @@ export default function RewardsClientPage() {
       try {
         const decodedToken = jwtDecode<JwtPayload>(token);
         const userEmail = decodedToken.sub;
-        const encodedEmail = encodeURIComponent(userEmail);
-        const headers = { 'Authorization': `Bearer ${token}` };
-
-        const [alunoResponse, vantagensResponse] = await Promise.all([
-          fetch(`http://localhost:8080/api/alunos/by-email/${encodedEmail}`, { headers }),
-          fetch(`http://localhost:8080/api/vantagens`, { headers })
+        
+        await Promise.all([
+          fetchAlunoSaldo(token, userEmail),
+          fetchVantagens(token)
         ]);
-
-        if (!alunoResponse.ok) {
-          throw new Error(`Falha ao buscar dados do aluno (status: ${alunoResponse.status})`);
-        }
-        const alunoData: AlunoData = await alunoResponse.json();
-        setAlunoSaldo(alunoData.saldo);
-
-        if (!vantagensResponse.ok) {
-          throw new Error(`Falha ao buscar vantagens (status: ${vantagensResponse.status})`);
-        }
-        const vantData: Vantagem[] = await vantagensResponse.json();
-        setVantagens(vantData);
 
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
-        let msg = "Não foi possível carregar os dados. Tente novamente.";
-        if (error instanceof Error) msg = error.message;
-        setErrorMessage(msg);
+        setErrorMessage("Erro ao decodificar token ou buscar dados.");
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [fetchAlunoSaldo, fetchVantagens]);
 
-  const handleResgatar = (vantagemId: number) => {
-    alert(`Funcionalidade de resgate para Vantagem ID ${vantagemId} ainda não implementada.`);
+  const handleResgatar = async (vantagem: Vantagem) => {
+    setResgateLoadingId(vantagem.id);
+    setErrorMessage('');
+    const token = localStorage.getItem('authToken');
+
+    if (!token) {
+      setErrorMessage("Sessão expirada. Faça login novamente.");
+      setResgateLoadingId(null);
+      return;
+    }
+
+    if (alunoSaldo < vantagem.custoMoedas) {
+        setErrorMessage("Saldo insuficiente.");
+        setResgateLoadingId(null);
+        return;
+    }
+    
+    if (vantagem.quantidadeDisponivel === 0) {
+        setErrorMessage("Esta vantagem está esgotada.");
+        setResgateLoadingId(null);
+        return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/alunos/vantagens/${vantagem.id}/resgatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        alert(`Vantagem "${vantagem.nome}" resgatada com sucesso!`);
+        
+        const decodedToken = jwtDecode<JwtPayload>(token);
+        await Promise.all([
+          fetchAlunoSaldo(token, decodedToken.sub),
+          fetchVantagens(token)
+        ]);
+
+      } else {
+        const errorText = await response.text();
+        console.error("Erro ao resgatar:", errorText);
+        setErrorMessage(errorText || "Não foi possível resgatar a vantagem.");
+      }
+    } catch (error) {
+      console.error("Erro de rede ao resgatar:", error);
+      setErrorMessage("Erro de conexão ao tentar resgatar. Tente novamente.");
+    } finally {
+      setResgateLoadingId(null);
+    }
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,8 +249,12 @@ export default function RewardsClientPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vantagens.map((vantagem) => (
               <Card key={vantagem.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-                <div className="aspect-video bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                  <Store className="w-16 h-16 text-white" />
+                <div className="h-78 w-full bg-gray-200">
+                  <img 
+                    src={vantagem.imagemUrl} 
+                    alt={vantagem.nome} 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
                 <div className="p-6 space-y-4 flex flex-col flex-1">
                   <div className="space-y-2 flex-1">
@@ -192,10 +272,16 @@ export default function RewardsClientPage() {
                       </span>
                     </div>
                     <Button 
-                      onClick={() => handleResgatar(vantagem.id)}
-                      disabled={alunoSaldo < vantagem.custoMoedas || vantagem.quantidadeDisponivel === 0}
+                      onClick={() => handleResgatar(vantagem)}
+                      disabled={alunoSaldo < vantagem.custoMoedas || vantagem.quantidadeDisponivel === 0 || !!resgateLoadingId}
                     >
-                      {vantagem.quantidadeDisponivel === 0 ? "Esgotado" : "Resgatar"}
+                      {resgateLoadingId === vantagem.id ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : vantagem.quantidadeDisponivel === 0 ? (
+                        "Esgotado"
+                      ) : (
+                        "Resgatar"
+                      )}
                     </Button>
                   </div>
                 </div>

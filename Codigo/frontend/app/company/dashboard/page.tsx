@@ -34,6 +34,7 @@ interface Vantagem {
   descricao: string;
   custoMoedas: number;
   quantidadeDisponivel: number | null;
+  imagemUrl: string;
 }
 
 interface VantagemFormDTO {
@@ -49,6 +50,7 @@ export default function CompanyDashboardClient() {
   const [vantagensLoading, setVantagensLoading] = useState(true);
 
   const [form, setForm] = useState<VantagemFormDTO>({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
+  const [imagem, setImagem] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -97,14 +99,19 @@ export default function CompanyDashboardClient() {
   }, [fetchVantagens]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setForm(prev => ({ ...prev, [id]: value }));
+    const { id, value, files } = e.target as HTMLInputElement;
+    if (id === 'imagem' && files) {
+        setImagem(files[0] || null);
+    } else {
+        setForm(prev => ({ ...prev, [id]: value }));
+    }
   };
 
   const handleDialogChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (!open) {
       setForm({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
+      setImagem(null);
       setErrorMessage('');
       setSuccessMessage('');
     }
@@ -123,14 +130,22 @@ export default function CompanyDashboardClient() {
       return;
     }
 
-    const payload = {
-      nome: form.nome,
-      descricao: form.descricao,
-      custoMoedas: parseFloat(form.custoMoedas),
-      quantidadeDisponivel: form.quantidadeDisponivel ? parseInt(form.quantidadeDisponivel, 10) : null
-    };
+    if (!imagem) {
+        setErrorMessage("Por favor, selecione uma imagem para a vantagem.");
+        setIsLoading(false);
+        return;
+    }
 
-    if (isNaN(payload.custoMoedas) || payload.custoMoedas < 0) {
+    const formData = new FormData();
+    formData.append('nome', form.nome);
+    formData.append('descricao', form.descricao);
+    formData.append('custoMoedas', parseFloat(form.custoMoedas).toString());
+    if (form.quantidadeDisponivel) {
+        formData.append('quantidadeDisponivel', parseInt(form.quantidadeDisponivel, 10).toString());
+    }
+    formData.append('imagem', imagem);
+
+    if (isNaN(parseFloat(form.custoMoedas)) || parseFloat(form.custoMoedas) < 0) {
         setErrorMessage("Custo de moedas inválido.");
         setIsLoading(false);
         return;
@@ -140,10 +155,9 @@ export default function CompanyDashboardClient() {
       const response = await fetch(`http://localhost:8080/api/empresas/vantagens`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(payload)
+        body: formData
       });
 
       if (response.ok) {
@@ -151,9 +165,7 @@ export default function CompanyDashboardClient() {
         setSuccessMessage("Vantagem cadastrada com sucesso!");
         setVantagens(prev => [novaVantagem, ...prev]);
         setTimeout(() => {
-            setForm({ nome: '', descricao: '', custoMoedas: '', quantidadeDisponivel: '' });
-            setIsDialogOpen(false);
-            setSuccessMessage('');
+            handleDialogChange(false);
         }, 1500);
       } else {
         const errorText = await response.text();
@@ -177,12 +189,12 @@ export default function CompanyDashboardClient() {
   return (
     <div className="min-h-screen bg-secondary/30">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Store className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">S.G.M.E</span>
+            <span className="text-xl font-bold">MeritCoin</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
@@ -264,10 +276,23 @@ export default function CompanyDashboardClient() {
                 <DialogDescription>Adicione uma nova vantagem para os alunos</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCadastroVantagem} className="space-y-4 pt-4">
+                
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Vantagem *</Label>
                   <Input id="nome" value={form.nome} onChange={handleFormChange} placeholder="Ex: Café Grátis" required />
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="imagem">Imagem da Vantagem *</Label>
+                  <Input 
+                    id="imagem" 
+                    type="file" 
+                    onChange={handleFormChange} 
+                    accept="image/png, image/jpeg, image/webp" 
+                    required 
+                  />
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="descricao">Descrição</Label>
                   <Textarea id="descricao" value={form.descricao} onChange={handleFormChange} placeholder="Descreva os detalhes da vantagem..." rows={3} />
@@ -320,8 +345,12 @@ export default function CompanyDashboardClient() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {vantagens.map((vantagem) => (
                 <Card key={vantagem.id} className="overflow-hidden flex flex-col">
-                  <div className="aspect-video bg-gradient-to-br from-primary/80 to-primary/60 flex items-center justify-center">
-                    <Store className="w-16 h-16 text-white/90" />
+                  <div className="h-78 w-full bg-gray-200">
+                    <img 
+                      src={vantagem.imagemUrl} 
+                      alt={vantagem.nome} 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                   <div className="p-6 space-y-4 flex flex-col flex-1">
                     <div className="space-y-2 flex-1">

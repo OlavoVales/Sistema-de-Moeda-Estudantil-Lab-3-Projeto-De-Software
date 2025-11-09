@@ -29,6 +29,9 @@ public class Vantagem {
     @Column(name = "quantidade_disponivel")
     private Integer quantidadeDisponivel;
 
+    @Column(name = "imagem_url")
+    private String imagemUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empresa_id", nullable = false)
     @JsonIgnore

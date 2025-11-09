@@ -11,6 +11,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 import java.util.List;
 
@@ -26,6 +28,9 @@ public class EmpresaService {
     @Autowired
     private VantagemRepository vantagemRepository;
 
+    @Autowired
+    private StorageService storageService;
+
     private EmpresaParceira getEmpresaPorEmail(String emailUsuario) {
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
@@ -35,8 +40,10 @@ public class EmpresaService {
     }
 
     @Transactional
-    public Vantagem cadastrarVantagem(String emailUsuario, VantagemRegisterDTO dto) {
+    public Vantagem cadastrarVantagem(String emailUsuario, VantagemRegisterDTO dto, MultipartFile imagem) throws IOException {
         EmpresaParceira empresaLogada = getEmpresaPorEmail(emailUsuario);
+
+        String imageUrl = storageService.uploadFile(imagem);
 
         Vantagem novaVantagem = new Vantagem();
         novaVantagem.setNome(dto.nome());
@@ -44,6 +51,7 @@ public class EmpresaService {
         novaVantagem.setCustoMoedas(dto.custoMoedas());
         novaVantagem.setQuantidadeDisponivel(dto.quantidadeDisponivel());
         novaVantagem.setEmpresaParceira(empresaLogada);
+        novaVantagem.setImagemUrl(imageUrl);
 
         return vantagemRepository.save(novaVantagem);
     }

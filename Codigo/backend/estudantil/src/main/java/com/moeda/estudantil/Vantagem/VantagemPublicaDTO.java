@@ -1,6 +1,7 @@
 package com.moeda.estudantil.Vantagem;
 
 import com.moeda.estudantil.Vantagem.Vantagem;
+import java.time.LocalDateTime;
 
 public record VantagemPublicaDTO(
     Long id,
@@ -8,7 +9,8 @@ public record VantagemPublicaDTO(
     String descricao,
     Double custoMoedas,
     Integer quantidadeDisponivel,
-    String nomeEmpresa
+    String nomeEmpresa,
+    String imagemUrl
 ) {
     public VantagemPublicaDTO(Vantagem vantagem) {
         this(
@@ -17,7 +19,8 @@ public record VantagemPublicaDTO(
             vantagem.getDescricao(),
             vantagem.getCustoMoedas(),
             vantagem.getQuantidadeDisponivel(),
-            vantagem.getEmpresaParceira().getNomeFantasia()
+            vantagem.getEmpresaParceira().getNomeFantasia(),
+            vantagem.getImagemUrl()
         );
     }
 }
