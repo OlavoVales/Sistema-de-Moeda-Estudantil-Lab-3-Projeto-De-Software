@@ -36,7 +36,7 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 * Login e senha para todos os perfis (Aluno, Professor, Empresa).
 * Acesso protegido para áreas restritas.
 
-## 🏗️ Arquitetura e Tecnologias
+###  🏗️ Arquitetura e Tecnologias
 
 * **Padrão arquitetural:** DTO (Data Transfer Object)
 * **Back-end:** Spring Boot
@@ -46,16 +46,16 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 * **Controle de versão:** GitHub
 
 
-## 🖇️ Diagramas
+###  🖇️ Diagramas
 
 
 
 
 
 
-## 📦 Como rodar (instruções rápidas)
+### 📦 Como rodar (instruções rápidas)
 
-# 📋 Pré-requisitos
+#### 📋 Pré-requisitos
 Antes de começar, certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 - Git  
@@ -66,21 +66,21 @@ Antes de começar, certifique-se de ter as seguintes ferramentas instaladas em s
 
 ---
 
-# ⚙ Configuração do Ambiente
+#### ⚙ Configuração do Ambiente
 Siga os passos abaixo para configurar o ambiente de desenvolvimento.
 
-### 1. Clonar o Repositório
+#### 1. Clonar o Repositório
 ```bash
 git clone https://SEU-LINK-DO-REPOSITORIO-AQUI.git
 cd NOME-DA-PASTA-DO-PROJETO
 ```
 
-### 2. Configurar o Banco de Dados (Supabase)
+#### 2. Configurar o Banco de Dados (Supabase)
 
 Este projeto espera que as tabelas usuarios, carros e aluguel já existam no seu banco de dados Supabase.
 Certifique-se de que as colunas e os relacionamentos foram criados conforme o desenvolvimento.
 
-### 3. Configurar o Backend (Spring Boot)
+#### 3. Configurar o Backend (Spring Boot)
 
 O backend precisa das credenciais para se conectar ao seu banco de dados.
 
@@ -92,25 +92,25 @@ Crie uma cópia do arquivo application.properties.example e renomeie-a para appl
 
 Abra o novo arquivo e preencha com as suas credenciais do Supabase:
 
-## URL de conexão com o banco de dados PostgreSQL do Supabase
+##### URL de conexão com o banco de dados PostgreSQL do Supabase
 spring.datasource.url=jdbc:postgresql://SEU_HOST_DO_SUPABASE:5432/postgres
 
-## Usuário do banco (geralmente 'postgres')
+##### Usuário do banco (geralmente 'postgres')
 spring.datasource.username=postgres
 
-## Senha do seu banco de dados
+##### Senha do seu banco de dados
 spring.datasource.password=SUA_SENHA_DO_BANCO
 
-## Configurações do JPA/Hibernate
+##### Configurações do JPA/Hibernate
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties.hibernate.format_sql=true
 
-### Chave secreta para a assinatura do Token JWT (gere uma chave segura)
+##### Chave secreta para a assinatura do Token JWT (gere uma chave segura)
 api.security.token.secret=SUA_CHAVE_SECRETA_LONGA_E_SEGURA_AQUI
 
-### 4. Configurar o Frontend (Next.js)
+#### 4. Configurar o Frontend (Next.js)
 
 O frontend precisa saber a URL do seu backend.
 
@@ -140,7 +140,7 @@ mvn spring-boot:run
 ➡️ O servidor backend estará rodando em http://localhost:8080
 
 
-## Iniciar o Frontend (Next.js)
+### Iniciar o Frontend (Next.js)
 
 Abra um novo terminal e navegue até a pasta do frontend.
 
@@ -159,18 +159,18 @@ Agora, basta abrir o navegador em http://localhost:3000 para usar o sistema 🚀
 
 
 
-## 👥 Equipe
+### 👥 Equipe
 
 Fernanda Soares Oliveira Cunha 
 
 Gabriel Reis Lebron
 
 
-## 📚 Professor Responsável
+### 📚 Professor Responsável
 
 **João Paulo Carneiro Aramuni** — Disciplina: Laboratório de Desenvolvimento de Software (Curso: Engenharia de Software)
 
-## 🏁 Status
+### 🏁 Status
 
 **Release 1 — Concluído**
 
