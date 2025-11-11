@@ -12,30 +12,31 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 
 ## 🧩 Funcionalidades Principais
 
-## 👨‍🏫 Professores
+### 👨‍🏫 Professores
 
 * Recebem **1.000 moedas por semestre** (saldo acumulável).
 * Podem enviar moedas aos alunos com motivo (mensagem/justificativa).
 * Consultam saldo e extrato de transações.
 
-## 🎓 Alunos
+### 🎓 Alunos
 
 * Cadastro com dados pessoais e instituição.
 * Recebem moedas e notificações por e-mail.
 * Consultam saldo e histórico de transações.
 * Resgatam moedas por vantagens (descontos, produtos, etc.) — recebem cupom digital e código de conferência.
 
-## 🏢 Empresas Parceiras
+### 🏢 Empresas Parceiras
 
 * Cadastro com nome, descrição e lista de vantagens.
 * Cada vantagem tem descrição, foto e custo em moedas.
 * Recebem e-mail ao ocorrer resgate com código de conferência.
 
-## 🔐 Autenticação
+### 🔐 Autenticação
 
 * Login e senha para todos os perfis (Aluno, Professor, Empresa).
 * Acesso protegido para áreas restritas.
 
+---
 ##  🏗️ Arquitetura e Tecnologias
 
 * **Padrão arquitetural:** DTO (Data Transfer Object)
