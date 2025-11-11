@@ -55,7 +55,7 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 
 ## 📦 Como rodar (instruções rápidas)
 
-## 📋 Pré-requisitos
+# 📋 Pré-requisitos
 Antes de começar, certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 - Git  
@@ -66,7 +66,7 @@ Antes de começar, certifique-se de ter as seguintes ferramentas instaladas em s
 
 ---
 
-## ⚙ Configuração do Ambiente
+# ⚙ Configuração do Ambiente
 Siga os passos abaixo para configurar o ambiente de desenvolvimento.
 
 ### 1. Clonar o Repositório
