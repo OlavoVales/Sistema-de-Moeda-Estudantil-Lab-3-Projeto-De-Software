@@ -12,31 +12,31 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 
 ## 🧩 Funcionalidades Principais
 
-### 👨‍🏫 Professores
+## 👨‍🏫 Professores
 
 * Recebem **1.000 moedas por semestre** (saldo acumulável).
 * Podem enviar moedas aos alunos com motivo (mensagem/justificativa).
 * Consultam saldo e extrato de transações.
 
-### 🎓 Alunos
+## 🎓 Alunos
 
 * Cadastro com dados pessoais e instituição.
 * Recebem moedas e notificações por e-mail.
 * Consultam saldo e histórico de transações.
 * Resgatam moedas por vantagens (descontos, produtos, etc.) — recebem cupom digital e código de conferência.
 
-### 🏢 Empresas Parceiras
+## 🏢 Empresas Parceiras
 
 * Cadastro com nome, descrição e lista de vantagens.
 * Cada vantagem tem descrição, foto e custo em moedas.
 * Recebem e-mail ao ocorrer resgate com código de conferência.
 
-### 🔐 Autenticação
+## 🔐 Autenticação
 
 * Login e senha para todos os perfis (Aluno, Professor, Empresa).
 * Acesso protegido para áreas restritas.
 
-###  🏗️ Arquitetura e Tecnologias
+##  🏗️ Arquitetura e Tecnologias
 
 * **Padrão arquitetural:** DTO (Data Transfer Object)
 * **Back-end:** Spring Boot
@@ -46,14 +46,14 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 * **Controle de versão:** GitHub
 
 
-###  🖇️ Diagramas
+##  🖇️ Diagramas
 
 
 
 
 
 
-### 📦 Como rodar (instruções rápidas)
+## 📦 Como rodar (instruções rápidas)
 
 #### 📋 Pré-requisitos
 Antes de começar, certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
@@ -126,7 +126,10 @@ Adicione a seguinte linha ao arquivo:
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-### 🚀 Pronto para Rodar
+
+---
+
+## 🚀 Pronto para Rodar
 
 Para rodar a aplicação, você precisará iniciar o backend e o frontend em dois terminais separados.
 
@@ -163,7 +166,7 @@ Agora, basta abrir o navegador em http://localhost:3000 para usar o sistema 🚀
 
 ---
 
-### 👥 Equipe
+## 👥 Equipe
 
 Fernanda Soares Oliveira Cunha 
 
@@ -172,13 +175,13 @@ Gabriel Reis Lebron
 
 ---
 
-### 📚 Professor Responsável
+## 📚 Professor Responsável
 
 **João Paulo Carneiro Aramuni** — Disciplina: Laboratório de Desenvolvimento de Software (Curso: Engenharia de Software)
 
 ---
 
-### 🏁 Status
+## 🏁 Status
 
 **Release 1 — Concluído**
 
