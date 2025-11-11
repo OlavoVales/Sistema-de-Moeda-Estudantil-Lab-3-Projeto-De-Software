@@ -110,6 +110,9 @@ spring.jpa.properties.hibernate.format_sql=true
 ##### Chave secreta para a assinatura do Token JWT (gere uma chave segura)
 api.security.token.secret=SUA_CHAVE_SECRETA_LONGA_E_SEGURA_AQUI
 
+---
+
+
 #### 4. Configurar o Frontend (Next.js)
 
 O frontend precisa saber a URL do seu backend.
@@ -123,7 +126,7 @@ Adicione a seguinte linha ao arquivo:
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-### 🚀 Como Rodar o Projeto
+### 🚀 Pronto para Rodar
 
 Para rodar a aplicação, você precisará iniciar o backend e o frontend em dois terminais separados.
 
@@ -158,6 +161,7 @@ Agora, basta abrir o navegador em http://localhost:3000 para usar o sistema 🚀
 
 
 
+---
 
 ### 👥 Equipe
 
@@ -166,9 +170,13 @@ Fernanda Soares Oliveira Cunha
 Gabriel Reis Lebron
 
 
+---
+
 ### 📚 Professor Responsável
 
 **João Paulo Carneiro Aramuni** — Disciplina: Laboratório de Desenvolvimento de Software (Curso: Engenharia de Software)
+
+---
 
 ### 🏁 Status
 
