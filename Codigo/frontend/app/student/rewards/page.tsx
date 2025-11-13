@@ -6,6 +6,14 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Coins, ArrowLeft, Search, Store, Utensils, Book, Ticket, Loader2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { useState, useEffect, useCallback } from "react";
 import { jwtDecode } from 'jwt-decode';
 
@@ -30,12 +38,22 @@ interface Vantagem {
   imagemUrl: string;
 }
 
+interface ResgateResponse {
+  nomeVantagem: string;
+  nomeEmpresa: string;
+  codigoResgate: string;
+  custo: number;
+}
+
 export default function RewardsClientPage() {
   const [vantagens, setVantagens] = useState<Vantagem[]>([]);
   const [alunoSaldo, setAlunoSaldo] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [resgateLoadingId, setResgateLoadingId] = useState<number | null>(null);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [cupomResgatado, setCupomResgatado] = useState<ResgateResponse | null>(null);
 
   const fetchAlunoSaldo = useCallback(async (token: string, userEmail: string) => {
     try {
@@ -141,7 +159,9 @@ export default function RewardsClientPage() {
       });
 
       if (response.ok) {
-        alert(`Vantagem "${vantagem.nome}" resgatada com sucesso!`);
+        const resgate: ResgateResponse = await response.json();
+        setCupomResgatado(resgate);
+        setShowSuccessModal(true);
         
         const decodedToken = jwtDecode<JwtPayload>(token);
         await Promise.all([
@@ -290,6 +310,37 @@ export default function RewardsClientPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">🎉 Vantagem Resgatada! 🎉</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Você resgatou com sucesso: <br />
+              <strong className="text-lg text-primary">{cupomResgatado?.nomeVantagem}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <p className="text-sm text-muted-foreground">Apresente este código para {cupomResgatado?.nomeEmpresa}:</p>
+            <div className="my-4 p-4 border-2 border-dashed border-primary rounded-lg">
+              <span className="text-4xl font-bold tracking-widest text-primary">
+                {cupomResgatado?.codigoResgate}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Um e-mail com este código também foi enviado para você.
+            </p>
+            <p className="text-lg font-bold text-destructive mt-4">
+              - {cupomResgatado?.custo.toLocaleString('pt-BR')} moedas
+            </p>
+          </div>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setShowSuccessModal(false)}>
+              Entendido!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

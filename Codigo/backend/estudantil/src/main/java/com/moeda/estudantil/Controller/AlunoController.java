@@ -9,6 +9,15 @@ import com.moeda.estudantil.Transacao.TransacaoAlunoDTO;
 import com.moeda.estudantil.Transacao.TransacaoRepository;
 import com.moeda.estudantil.Usuario.Usuario;
 import com.moeda.estudantil.Usuario.UsuarioRepository;
+import com.moeda.estudantil.Cupom.Cupom;
+import com.moeda.estudantil.Cupom.CupomRepository;
+import com.moeda.estudantil.Cupom.CupomDTO;
+import com.moeda.estudantil.Cupom.ResgateResponseDTO;
+import com.moeda.estudantil.Service.VantagemService;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -37,6 +46,9 @@ public class AlunoController {
 
     @Autowired
     private VantagemService vantagemService;
+
+    @Autowired
+    private CupomRepository cupomRepository;
 
     @GetMapping
     public List<Aluno> buscarTodosAlunos() {
@@ -83,18 +95,33 @@ public class AlunoController {
         @PathVariable Long vantagemId,
         @AuthenticationPrincipal UserDetails userDetails) {
     
-    String emailAluno = userDetails.getUsername();
+        String emailAluno = userDetails.getUsername();
 
-    try {
-        ResgateResponseDTO response = vantagemService.resgatarVantagem(vantagemId, emailAluno);
-        return ResponseEntity.ok(response);
-    } catch (EntityNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-    } catch (IllegalStateException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao processar o resgate.");
+        try {
+            ResgateResponseDTO response = vantagemService.resgatarVantagem(vantagemId, emailAluno);
+            return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno ao processar o resgate.");
+        }
     }
-}
+
+    @GetMapping("/{alunoId}/cupons")
+    public ResponseEntity<List<CupomDTO>> buscarMeusCupons(@PathVariable Long alunoId) {
+        if (!alunoRepository.existsById(alunoId)) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        List<Cupom> cupons = cupomRepository.findByAlunoIdOrderByDataResgateDesc(alunoId);
+        
+        List<CupomDTO> dtos = cupons.stream()
+                                  .map(CupomDTO::new)
+                                  .collect(Collectors.toList());
+                                  
+        return ResponseEntity.ok(dtos);
+    }
 }

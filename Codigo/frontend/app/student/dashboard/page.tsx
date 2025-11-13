@@ -259,15 +259,17 @@ export default function StudentDashboard() {
             </Link>
           </Card>
           <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                <Coins className="w-6 h-6 text-success" />
+            <Link href="/student/cupons">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Coins className="w-6 h-6 text-success" />
+                </div>
+                <div>
+                  <h3 className="font-bold">Meus Cupons</h3>
+                  <p className="text-sm text-muted-foreground">Ver resgates</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold">Meus Cupons</h3>
-                <p className="text-sm text-muted-foreground">Ver resgates</p>
-              </div>
-            </div>
+            </Link>
           </Card>
         </div>
 

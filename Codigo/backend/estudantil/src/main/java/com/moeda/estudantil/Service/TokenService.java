@@ -27,7 +27,7 @@ public class TokenService {
                 .subject(usuario.getEmail()) 
                 .claim("nome", usuario.getNome())
                 .claim("role", usuario.getTipoUsuario().name())
-                .issuer("MeritCoin API")
+                .issuer("S.G.M.E API")
                 .issuedAt(new Date())
                 .expiration(genExpirationDate())
                 .signWith(key)
