@@ -36,7 +36,7 @@ public class Aluno {
     private String curso;
     private Double saldo;
     @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 

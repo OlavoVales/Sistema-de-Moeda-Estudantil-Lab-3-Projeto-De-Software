@@ -32,7 +32,7 @@ public class Vantagem {
     @Column(name = "imagem_url")
     private String imagemUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "empresa_id", nullable = false)
     @JsonIgnore
     private EmpresaParceira empresaParceira;
