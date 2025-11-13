@@ -23,6 +23,56 @@ public class EmailService {
     private TemplateEngine templateEngine;
 
     @Async
+    public void notificarAlunoDistribuicao(Usuario professor, Usuario aluno, Integer quantidade, String motivo) {
+        try {
+            Context context = new Context();
+            context.setVariable("nomeAluno", aluno.getNome());
+            context.setVariable("nomeProfessor", professor.getNome());
+            context.setVariable("quantidade", quantidade);
+            context.setVariable("motivo", motivo);
+
+            String htmlContent = templateEngine.process("distribuicao-aluno-template", context);
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+
+            helper.setFrom("nao-responda@sgme.com");
+            helper.setTo(aluno.getEmail());
+            helper.setSubject("Parabéns! Você recebeu moedas! - S.G.M.E");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Erro ao criar ou enviar email de notificação para o aluno: " + e.getMessage());
+        }
+    }
+
+    @Async
+    public void notificarProfessorDistribuicao(Usuario professor, Usuario aluno, Integer quantidade, String motivo) {
+         try {
+            Context context = new Context();
+            context.setVariable("nomeProfessor", professor.getNome());
+            context.setVariable("nomeAluno", aluno.getNome());
+            context.setVariable("quantidade", quantidade);
+            context.setVariable("motivo", motivo);
+
+            String htmlContent = templateEngine.process("distribuicao-professor-template", context);
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+            
+            helper.setFrom("nao-responda@sgme.com");
+            helper.setTo(professor.getEmail());
+            helper.setSubject("Envio de moedas confirmado - S.G.M.E");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Erro ao criar ou enviar email de confirmação para o professor: " + e.getMessage());
+        }
+    }
+
+    @Async
     public void enviarEmailResgateAluno(Usuario aluno, Cupom cupom) {
         try {
             Context context = new Context();

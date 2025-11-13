@@ -32,6 +32,9 @@ public class ProfessorService {
     @Autowired
     private TransacaoRepository transacaoRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public void distribuirMoedas(Long professorId, DistribuirMoedasDTO dto) {
 
@@ -57,9 +60,11 @@ public class ProfessorService {
         transacao.setTipo(TipoTransacao.DISTRIBUICAO);
         transacaoRepository.save(transacao);
 
-        System.out.println("Moedas distribuídas e transação registrada com sucesso: " + dto.quantidade() +
-                           " para " + aluno.getUsuario().getNome() +
-                           " por " + professor.getUsuario().getNome() +
-                           " Motivo: " + dto.motivo());
+        Usuario usuarioProfessor = professor.getUsuario();
+
+        emailService.notificarAlunoDistribuicao(usuarioProfessor, usuarioAluno, dto.quantidade(), dto.motivo());
+        emailService.notificarProfessorDistribuicao(usuarioProfessor, usuarioAluno, dto.quantidade(), dto.motivo());
+
+        System.out.println("Moedas distribuídas e e-mails de notificação disparados.");
     }
 }
