@@ -47,12 +47,6 @@ Promover o reconhecimento do desempenho estudantil através de uma moeda virtual
 * **Controle de versão:** GitHub
 
 
-##  🖇️ Diagramas
-
-
-
-
-
 
 ## 📦 Como rodar (instruções rápidas)
 
