@@ -180,6 +180,7 @@ Gabriel Reis Lebron
 
 **Release 1 — Concluído**
 
-**Release 2— Em desenvolvimento**
+**Release 2 — Em desenvolvimento**
 
+**Release 3 — Concluído**
 
